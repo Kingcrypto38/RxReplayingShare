@@ -9,6 +9,8 @@ value from the upstream observable *only* when one or more downstream subscriber
 This allows expensive upstream observables to be shut down when no one is subscribed while also
 replaying the last value seen by *any* subscriber to new ones.
 
+![marble diagram](marbles.png)
+
 Apply with `compose` to an upstream observable and cache the resulting observable for new
 subscribers.
 
