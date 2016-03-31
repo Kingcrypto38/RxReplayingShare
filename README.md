@@ -39,12 +39,12 @@ Maven:
 <dependency>
   <groupId>com.jakewharton.rx</groupId>
   <artifactId>replaying-share</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 Gradle:
 ```groovy
-compile 'com.jakewharton.rx:replaying-share:1.0.0'
+compile 'com.jakewharton.rx:replaying-share:1.0.1'
 ```
 
 If you use Kotlin, a package with an extension method for `Observable` is provided. Replace the
