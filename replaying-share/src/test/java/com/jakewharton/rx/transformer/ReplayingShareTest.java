@@ -166,4 +166,26 @@ public final class ReplayingShareTest {
     subscription2.unsubscribe();
     assertEquals(0, count.get());
   }
+
+  @Test public void backpressureHonoredWhenCached() {
+    PublishRelay<String> relay = PublishRelay.create();
+    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+
+    TestSubscriber<String> subscriber1 = new TestSubscriber<>();
+    observable.subscribe(subscriber1);
+    subscriber1.assertNoValues();
+
+    relay.call("Foo");
+    subscriber1.assertValues("Foo");
+
+    TestSubscriber<String> subscriber2 = new TestSubscriber<>(0);
+    observable.subscribe(subscriber2);
+    subscriber2.assertNoValues();
+
+    relay.call("Bar"); // Replace the cached value...
+    subscriber1.assertValues("Foo", "Bar");
+
+    subscriber2.requestMore(1); // ...and ensure new requests see it.
+    subscriber2.assertValues("Bar");
+  }
 }
