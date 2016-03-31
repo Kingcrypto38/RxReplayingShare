@@ -49,7 +49,7 @@ public final class ReplayingShare<T> implements Transformer<T, T> {
   }
 
   private static final class LastSeen<T> {
-    private static final Object NONE = new Object();
+    static final Object NONE = new Object();
 
     @SuppressWarnings("unchecked") // Safe because of erasure.
     volatile T last = (T) NONE;
