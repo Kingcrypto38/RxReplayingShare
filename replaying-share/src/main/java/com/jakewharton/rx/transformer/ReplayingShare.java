@@ -16,11 +16,9 @@
 package com.jakewharton.rx.transformer;
 
 import rx.Observable;
-import rx.Observable.OnSubscribe;
 import rx.Observable.Transformer;
-import rx.Subscriber;
-import rx.exceptions.Exceptions;
 import rx.functions.Action1;
+import rx.functions.Func0;
 
 /**
  * A transformer which combines the {@code replay(1)}, {@code publish()}, and {@code refCount()}
@@ -45,37 +43,27 @@ public final class ReplayingShare<T> implements Transformer<T, T> {
 
   @Override public Observable<T> call(Observable<T> upstream) {
     LastSeen<T> lastSeen = new LastSeen<>();
-    return upstream.doOnNext(lastSeen.consumer).share().startWith(lastSeen.producer);
+    return upstream.doOnNext(lastSeen).share().startWith(Observable.defer(lastSeen));
   }
 
-  private static final class LastSeen<T> {
-    static final Object NONE = new Object();
+  private static final class LastSeen<T> implements Action1<T>, Func0<Observable<T>> {
+    private static final Object NONE = new Object();
 
     @SuppressWarnings("unchecked") // Safe because of erasure.
-    volatile T last = (T) NONE;
+    private volatile T last = (T) NONE;
 
     LastSeen() {
     }
 
-    final Action1<T> consumer = new Action1<T>() {
-      @Override public void call(T latest) {
-        last = latest;
-      }
-    };
-    final Observable<T> producer = Observable.create(new OnSubscribe<T>() {
-      @Override public void call(Subscriber<? super T> subscriber) {
-        T value = last;
-        if (value != NONE) {
-          try {
-            subscriber.onNext(value);
-          } catch (Throwable t) {
-            Exceptions.throwIfFatal(t);
-            subscriber.onError(t);
-            return;
-          }
-        }
-        subscriber.onCompleted();
-      }
-    });
+    @Override public void call(T latest) {
+      last = latest;
+    }
+
+    @Override public Observable<T> call() {
+      T value = last;
+      return value != NONE
+          ? Observable.just(value)
+          : Observable.<T>empty();
+    }
   }
 }
