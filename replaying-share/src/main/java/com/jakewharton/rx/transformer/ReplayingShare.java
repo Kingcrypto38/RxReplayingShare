@@ -25,7 +25,7 @@ import rx.functions.Action1;
 /**
  * A transformer which combines the {@code replay(1)}, {@code publish()}, and {@code refCount()}
  * operators.
- *
+ * <p>
  * Unlike traditional combinations of these operators, `ReplayingShare` caches the last emitted
  * value from the upstream observable *only* when one or more downstream subscribers are connected.
  * This allows expensive upstream observables to be shut down when no one is subscribed while also
