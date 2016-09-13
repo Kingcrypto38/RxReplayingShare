@@ -188,4 +188,29 @@ public final class ReplayingShareTest {
     subscriber2.requestMore(1); // ...and ensure new requests see it.
     subscriber2.assertValues("Bar");
   }
+
+  @Test public void streamsDoNotShareInstances() {
+    PublishRelay<String> relayA = PublishRelay.create();
+    Observable<String> observableA = relayA.compose(ReplayingShare.<String>instance());
+    TestSubscriber<String> subscriberA1 = new TestSubscriber<>();
+    observableA.subscribe(subscriberA1);
+
+    PublishRelay<String> relayB = PublishRelay.create();
+    Observable<String> observableB = relayB.compose(ReplayingShare.<String>instance());
+    TestSubscriber<String> subscriberB1 = new TestSubscriber<>();
+    observableB.subscribe(subscriberB1);
+
+    relayA.call("Foo");
+    subscriberA1.assertValues("Foo");
+    relayB.call("Bar");
+    subscriberB1.assertValues("Bar");
+
+    TestSubscriber<String> subscriberA2 = new TestSubscriber<>();
+    observableA.subscribe(subscriberA2);
+    subscriberA2.assertValues("Foo");
+
+    TestSubscriber<String> subscriberB2 = new TestSubscriber<>();
+    observableB.subscribe(subscriberB2);
+    subscriberB2.assertValues("Bar");
+  }
 }
