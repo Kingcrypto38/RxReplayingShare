@@ -18,7 +18,7 @@ subscribers.
 @Singleton class Chart {
   private final Observable<Bitmap> chart;
 
-  @Inject ChartData(Observable<List<Data>> data) {
+  @Inject Chart(Observable<List<Data>> data) {
     chart = data.debounce(1, SECONDS)
         .map(list -> bigExpensiveRenderChartToBitmapFunction(list))
         .compose(ReplayingShare.instance());
