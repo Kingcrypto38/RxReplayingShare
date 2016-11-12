@@ -18,7 +18,7 @@
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
     </dependency>
-    <!-- TODO remove when 2.0.1 of RxJava is released. -->
+    <!-- TODO remove when https://github.com/ReactiveX/RxJava/issues/4813 is fixed. -->
     <dependency>
       <groupId>org.reactivestreams</groupId>
       <artifactId>reactive-streams</artifactId>

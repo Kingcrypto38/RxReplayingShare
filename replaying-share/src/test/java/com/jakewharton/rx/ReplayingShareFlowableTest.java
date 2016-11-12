@@ -19,7 +19,6 @@ import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.LongConsumer;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -114,16 +113,12 @@ public final class ReplayingShareFlowableTest {
     final AtomicInteger count = new AtomicInteger();
     Flowable<String> flowable = subject //
         .doOnSubscribe(new Consumer<Subscription>() {
-          @Override public void accept(Subscription subscription) throws Exception {
+          @Override public void accept(Subscription subscription) {
             count.incrementAndGet();
           }
         }) //
-        .doOnLifecycle(new Consumer<Subscription>() { // TODO doOnUnsubscribe
-          @Override public void accept(Subscription subscription) throws Exception {}
-        }, new LongConsumer() {
-          @Override public void accept(long t) throws Exception {}
-        }, new Action() {
-          @Override public void run() throws Exception {
+        .doOnCancel(new Action() {
+          @Override public void run() {
             count.decrementAndGet();
           }
         }) //
