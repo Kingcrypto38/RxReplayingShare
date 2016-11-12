@@ -15,9 +15,9 @@
  */
 package com.jakewharton.rx.transformer
 
+import io.reactivex.Observable
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import rx.Observable
 
 class ReplayingShareTest {
   @Test fun extensionMethodWorks() {

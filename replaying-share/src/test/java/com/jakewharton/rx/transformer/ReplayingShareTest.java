@@ -15,77 +15,76 @@
  */
 package com.jakewharton.rx.transformer;
 
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.subjects.PublishSubject;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Ignore;
 import org.junit.Test;
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.observers.TestSubscriber;
-import rx.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public final class ReplayingShareTest {
   @Test public void noInitialValue() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
-    TestSubscriber<String> subscriber = new TestSubscriber<>();
-    observable.subscribe(subscriber);
-    subscriber.assertNoValues();
+    TestObserver<String> observer = new TestObserver<>();
+    observable.subscribe(observer);
+    observer.assertNoValues();
   }
 
   @Test public void initialValueToNewSubscriber() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
-    TestSubscriber<String> subscriber1 = new TestSubscriber<>();
-    observable.subscribe(subscriber1);
-    subscriber1.assertNoValues();
+    TestObserver<String> observer1 = new TestObserver<>();
+    observable.subscribe(observer1);
+    observer1.assertNoValues();
 
     subject.onNext("Foo");
-    subscriber1.assertValues("Foo");
+    observer1.assertValues("Foo");
 
-    TestSubscriber<String> subscriber2 = new TestSubscriber<>();
-    observable.subscribe(subscriber2);
-    subscriber2.assertValues("Foo");
+    TestObserver<String> observer2 = new TestObserver<>();
+    observable.subscribe(observer2);
+    observer2.assertValues("Foo");
   }
 
   @Test public void initialValueToNewSubscriberAfterUnsubscribe() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
-    TestSubscriber<String> subscriber1 = new TestSubscriber<>();
-    Subscription subscription1 = observable.subscribe(subscriber1);
-    subscriber1.assertNoValues();
+    TestObserver<String> observer1 = new TestObserver<>();
+    observable.subscribe(observer1);
+    observer1.assertNoValues();
 
     subject.onNext("Foo");
-    subscriber1.assertValues("Foo");
-    subscription1.unsubscribe();
+    observer1.assertValues("Foo");
+    observer1.dispose();
 
-    TestSubscriber<String> subscriber2 = new TestSubscriber<>();
-    observable.subscribe(subscriber2);
-    subscriber2.assertValues("Foo");
+    TestObserver<String> observer2 = new TestObserver<>();
+    observable.subscribe(observer2);
+    observer2.assertValues("Foo");
   }
 
   @Test public void valueMissedWhenNoSubscribers() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
-    TestSubscriber<String> subscriber1 = new TestSubscriber<>();
-    Subscription subscription1 = observable.subscribe(subscriber1);
-    subscriber1.assertNoValues();
-    subscription1.unsubscribe();
+    TestObserver<String> observer1 = new TestObserver<>();
+    observable.subscribe(observer1);
+    observer1.assertNoValues();
+    observer1.dispose();
 
     subject.onNext("Foo");
-    subscriber1.assertNoValues();
+    observer1.assertNoValues();
 
-    TestSubscriber<String> subscriber2 = new TestSubscriber<>();
-    observable.subscribe(subscriber2);
-    subscriber2.assertNoValues();
+    TestObserver<String> observer2 = new TestObserver<>();
+    observable.subscribe(observer2);
+    observer2.assertNoValues();
   }
 
   @Test public void fatalExceptionDuringReplayThrown() {
@@ -95,8 +94,8 @@ public final class ReplayingShareTest {
     observable.subscribe();
     subject.onNext("Foo");
 
-    Action1<String> brokenAction = new Action1<String>() {
-      @Override public void call(String s) {
+    Consumer<String> brokenAction = new Consumer<String>() {
+      @Override public void accept(String s) {
         throw new OutOfMemoryError("broken!");
       }
     };
@@ -107,110 +106,87 @@ public final class ReplayingShareTest {
     }
   }
 
-  @Test public void nonFatalExceptionDuringReplayPropagated() {
-    PublishSubject<String> subject = PublishSubject.create();
-    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
-
-    observable.subscribe();
-    subject.onNext("Foo");
-
-    // Use unsafeSubscribe here since SafeSubscriber automatically propagates exceptions.
-    observable.unsafeSubscribe(new Subscriber<String>() {
-      @Override public void onError(Throwable e) {
-        assertTrue(e instanceof IllegalStateException);
-        assertEquals("broken!", e.getMessage());
-      }
-
-      @Override public void onNext(String s) {
-        throw new IllegalStateException("broken!");
-      }
-
-      @Override public void onCompleted() {
-        throw new AssertionError();
-      }
-    });
-  }
-
   @Test public void refCountToUpstream() {
     PublishSubject<String> subject = PublishSubject.create();
 
     final AtomicInteger count = new AtomicInteger();
     Observable<String> observable = subject //
-        .doOnSubscribe(new Action0() {
-          @Override public void call() {
+        .doOnSubscribe(new Consumer<Disposable>() {
+          @Override public void accept(Disposable disposable) throws Exception {
             count.incrementAndGet();
           }
         }) //
-        .doOnUnsubscribe(new Action0() {
-          @Override public void call() {
+        .doOnDispose(new Action() {
+          @Override public void run() throws Exception {
             count.decrementAndGet();
           }
         }) //
         .compose(ReplayingShare.<String>instance());
 
-    Subscription subscription1 = observable.subscribe(new TestSubscriber<String>());
+    Disposable disposable1 = observable.subscribeWith(new TestObserver<String>());
     assertEquals(1, count.get());
 
-    Subscription subscription2 = observable.subscribe(new TestSubscriber<String>());
+    Disposable disposable2 = observable.subscribeWith(new TestObserver<String>());
     assertEquals(1, count.get());
 
-    Subscription subscription3 = observable.subscribe(new TestSubscriber<String>());
+    Disposable disposable3 = observable.subscribeWith(new TestObserver<String>());
     assertEquals(1, count.get());
 
-    subscription1.unsubscribe();
+    disposable1.dispose();
     assertEquals(1, count.get());
 
-    subscription3.unsubscribe();
+    disposable3.dispose();
     assertEquals(1, count.get());
 
-    subscription2.unsubscribe();
+    disposable2.dispose();
     assertEquals(0, count.get());
   }
 
+  @Ignore("No backpressure in Observable")
   @Test public void backpressureHonoredWhenCached() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
-    TestSubscriber<String> subscriber1 = new TestSubscriber<>();
-    observable.subscribe(subscriber1);
-    subscriber1.assertNoValues();
+    TestObserver<String> observer1 = new TestObserver<>();
+    observable.subscribe(observer1);
+    observer1.assertNoValues();
 
     subject.onNext("Foo");
-    subscriber1.assertValues("Foo");
+    observer1.assertValues("Foo");
 
-    TestSubscriber<String> subscriber2 = new TestSubscriber<>(0);
-    observable.subscribe(subscriber2);
-    subscriber2.assertNoValues();
+    TestObserver<String> observer2 = new TestObserver<>(/*0*/);
+    observable.subscribe(observer2);
+    observer2.assertNoValues();
 
     subject.onNext("Bar"); // Replace the cached value...
-    subscriber1.assertValues("Foo", "Bar");
+    observer1.assertValues("Foo", "Bar");
 
-    subscriber2.requestMore(1); // ...and ensure new requests see it.
-    subscriber2.assertValues("Bar");
+    //observer2.requestMore(1); // ...and ensure new requests see it.
+    observer2.assertValues("Bar");
   }
 
   @Test public void streamsDoNotShareInstances() {
     PublishSubject<String> subjectA = PublishSubject.create();
     Observable<String> observableA = subjectA.compose(ReplayingShare.<String>instance());
-    TestSubscriber<String> subscriberA1 = new TestSubscriber<>();
-    observableA.subscribe(subscriberA1);
+    TestObserver<String> observerA1 = new TestObserver<>();
+    observableA.subscribe(observerA1);
 
     PublishSubject<String> subjectB = PublishSubject.create();
     Observable<String> observableB = subjectB.compose(ReplayingShare.<String>instance());
-    TestSubscriber<String> subscriberB1 = new TestSubscriber<>();
-    observableB.subscribe(subscriberB1);
+    TestObserver<String> observerB1 = new TestObserver<>();
+    observableB.subscribe(observerB1);
 
     subjectA.onNext("Foo");
-    subscriberA1.assertValues("Foo");
+    observerA1.assertValues("Foo");
     subjectB.onNext("Bar");
-    subscriberB1.assertValues("Bar");
+    observerB1.assertValues("Bar");
 
-    TestSubscriber<String> subscriberA2 = new TestSubscriber<>();
-    observableA.subscribe(subscriberA2);
-    subscriberA2.assertValues("Foo");
+    TestObserver<String> observerA2 = new TestObserver<>();
+    observableA.subscribe(observerA2);
+    observerA2.assertValues("Foo");
 
-    TestSubscriber<String> subscriberB2 = new TestSubscriber<>();
-    observableB.subscribe(subscriberB2);
-    subscriberB2.assertValues("Bar");
+    TestObserver<String> observerB2 = new TestObserver<>();
+    observableB.subscribe(observerB2);
+    observerB2.assertValues("Bar");
   }
 }
