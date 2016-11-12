@@ -15,14 +15,25 @@
  */
 package com.jakewharton.rx
 
+import io.reactivex.Flowable
 import io.reactivex.Observable
 
 /**
  * A transformer which combines `replay(1)`, `publish()`, and `refCount()` operators.
  *
  * Unlike traditional combinations of these operators, `ReplayingShare` caches the last emitted
- * value from the upstream observable *only* when one or more downstream subscribers are connected.
- * This allows expensive upstream observables to be shut down when no one is subscribed while also
- * replaying the last value seen by *any* subscriber to new ones.
+ * value from the upstream observable *only* when one or more downstream observers are connected.
+ * This allows expensive upstream observables to be shut down when no one is observing while also
+ * replaying the last value seen by *any* observer to new ones.
  */
 fun <T> Observable<T>.replayingShare() = compose(ReplayingShare.instance<T>())
+
+/**
+ * A transformer which combines `replay(1)`, `publish()`, and `refCount()` operators.
+ *
+ * Unlike traditional combinations of these operators, `ReplayingShare` caches the last emitted
+ * value from the upstream flowable *only* when one or more downstream subscribers are connected.
+ * This allows expensive upstream flowables to be shut down when no one is subscribed while also
+ * replaying the last value seen by *any* subscriber to new ones.
+ */
+fun <T> Flowable<T>.replayingShare() = compose(ReplayingShare.instance<T>())
