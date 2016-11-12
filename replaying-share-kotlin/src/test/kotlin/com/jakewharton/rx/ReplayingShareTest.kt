@@ -15,13 +15,19 @@
  */
 package com.jakewharton.rx
 
+import io.reactivex.Flowable
 import io.reactivex.Observable
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class ReplayingShareTest {
-  @Test fun extensionMethodWorks() {
+  @Test fun observableExtensionMethodWorks() {
     val o = Observable.never<String>().replayingShare()
+    assertNotNull(o)
+  }
+
+  @Test fun flowableExtensionMethodWorks() {
+    val o = Flowable.never<String>().replayingShare()
     assertNotNull(o)
   }
 }

@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public final class ReplayingShareTest {
+public final class ReplayingShareObservableTest {
   @Test public void noInitialValue() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
