@@ -23,10 +23,5 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.jakewharton.rxrelay</groupId>
-      <artifactId>rxrelay</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 </project>

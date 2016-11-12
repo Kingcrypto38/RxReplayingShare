@@ -15,7 +15,6 @@
  */
 package com.jakewharton.rx.transformer;
 
-import com.jakewharton.rxrelay.PublishRelay;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import rx.Observable;
@@ -24,14 +23,15 @@ import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.observers.TestSubscriber;
+import rx.subjects.PublishSubject;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public final class ReplayingShareTest {
   @Test public void noInitialValue() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     TestSubscriber<String> subscriber = new TestSubscriber<>();
     observable.subscribe(subscriber);
@@ -39,14 +39,14 @@ public final class ReplayingShareTest {
   }
 
   @Test public void initialValueToNewSubscriber() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     TestSubscriber<String> subscriber1 = new TestSubscriber<>();
     observable.subscribe(subscriber1);
     subscriber1.assertNoValues();
 
-    relay.call("Foo");
+    subject.onNext("Foo");
     subscriber1.assertValues("Foo");
 
     TestSubscriber<String> subscriber2 = new TestSubscriber<>();
@@ -55,14 +55,14 @@ public final class ReplayingShareTest {
   }
 
   @Test public void initialValueToNewSubscriberAfterUnsubscribe() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     TestSubscriber<String> subscriber1 = new TestSubscriber<>();
     Subscription subscription1 = observable.subscribe(subscriber1);
     subscriber1.assertNoValues();
 
-    relay.call("Foo");
+    subject.onNext("Foo");
     subscriber1.assertValues("Foo");
     subscription1.unsubscribe();
 
@@ -72,15 +72,15 @@ public final class ReplayingShareTest {
   }
 
   @Test public void valueMissedWhenNoSubscribers() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     TestSubscriber<String> subscriber1 = new TestSubscriber<>();
     Subscription subscription1 = observable.subscribe(subscriber1);
     subscriber1.assertNoValues();
     subscription1.unsubscribe();
 
-    relay.call("Foo");
+    subject.onNext("Foo");
     subscriber1.assertNoValues();
 
     TestSubscriber<String> subscriber2 = new TestSubscriber<>();
@@ -89,11 +89,11 @@ public final class ReplayingShareTest {
   }
 
   @Test public void fatalExceptionDuringReplayThrown() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     observable.subscribe();
-    relay.call("Foo");
+    subject.onNext("Foo");
 
     Action1<String> brokenAction = new Action1<String>() {
       @Override public void call(String s) {
@@ -108,11 +108,11 @@ public final class ReplayingShareTest {
   }
 
   @Test public void nonFatalExceptionDuringReplayPropagated() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     observable.subscribe();
-    relay.call("Foo");
+    subject.onNext("Foo");
 
     // Use unsafeSubscribe here since SafeSubscriber automatically propagates exceptions.
     observable.unsafeSubscribe(new Subscriber<String>() {
@@ -132,10 +132,10 @@ public final class ReplayingShareTest {
   }
 
   @Test public void refCountToUpstream() {
-    PublishRelay<String> relay = PublishRelay.create();
+    PublishSubject<String> subject = PublishSubject.create();
 
     final AtomicInteger count = new AtomicInteger();
-    Observable<String> observable = relay //
+    Observable<String> observable = subject //
         .doOnSubscribe(new Action0() {
           @Override public void call() {
             count.incrementAndGet();
@@ -168,21 +168,21 @@ public final class ReplayingShareTest {
   }
 
   @Test public void backpressureHonoredWhenCached() {
-    PublishRelay<String> relay = PublishRelay.create();
-    Observable<String> observable = relay.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subject = PublishSubject.create();
+    Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
 
     TestSubscriber<String> subscriber1 = new TestSubscriber<>();
     observable.subscribe(subscriber1);
     subscriber1.assertNoValues();
 
-    relay.call("Foo");
+    subject.onNext("Foo");
     subscriber1.assertValues("Foo");
 
     TestSubscriber<String> subscriber2 = new TestSubscriber<>(0);
     observable.subscribe(subscriber2);
     subscriber2.assertNoValues();
 
-    relay.call("Bar"); // Replace the cached value...
+    subject.onNext("Bar"); // Replace the cached value...
     subscriber1.assertValues("Foo", "Bar");
 
     subscriber2.requestMore(1); // ...and ensure new requests see it.
@@ -190,19 +190,19 @@ public final class ReplayingShareTest {
   }
 
   @Test public void streamsDoNotShareInstances() {
-    PublishRelay<String> relayA = PublishRelay.create();
-    Observable<String> observableA = relayA.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subjectA = PublishSubject.create();
+    Observable<String> observableA = subjectA.compose(ReplayingShare.<String>instance());
     TestSubscriber<String> subscriberA1 = new TestSubscriber<>();
     observableA.subscribe(subscriberA1);
 
-    PublishRelay<String> relayB = PublishRelay.create();
-    Observable<String> observableB = relayB.compose(ReplayingShare.<String>instance());
+    PublishSubject<String> subjectB = PublishSubject.create();
+    Observable<String> observableB = subjectB.compose(ReplayingShare.<String>instance());
     TestSubscriber<String> subscriberB1 = new TestSubscriber<>();
     observableB.subscribe(subscriberB1);
 
-    relayA.call("Foo");
+    subjectA.onNext("Foo");
     subscriberA1.assertValues("Foo");
-    relayB.call("Bar");
+    subjectB.onNext("Bar");
     subscriberB1.assertValues("Bar");
 
     TestSubscriber<String> subscriberA2 = new TestSubscriber<>();
