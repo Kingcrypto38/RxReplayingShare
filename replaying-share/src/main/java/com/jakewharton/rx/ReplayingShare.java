@@ -46,14 +46,8 @@ public final class ReplayingShare<T> implements ObservableTransformer<T, T> {
     return upstream.doOnNext(lastSeen).share().startWith(Observable.defer(lastSeen));
   }
 
-  private static final class LastSeen<T> implements Consumer<T>, Callable<Observable<T>> {
-    private static final Object NONE = new Object();
-
-    @SuppressWarnings("unchecked") // Safe because of erasure.
-    private volatile T last = (T) NONE;
-
-    LastSeen() {
-    }
+  static final class LastSeen<T> implements Consumer<T>, Callable<Observable<T>> {
+    private volatile T last;
 
     @Override public void accept(T latest) {
       last = latest;
@@ -61,7 +55,7 @@ public final class ReplayingShare<T> implements ObservableTransformer<T, T> {
 
     @Override public Observable<T> call() {
       T value = last;
-      return value != NONE
+      return value != null
           ? Observable.just(value)
           : Observable.<T>empty();
     }
