@@ -15,10 +15,10 @@
  */
 package com.jakewharton.rx.transformer;
 
-import rx.Observable;
-import rx.Observable.Transformer;
-import rx.functions.Action1;
-import rx.functions.Func0;
+import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.functions.Consumer;
+import java.util.concurrent.Callable;
 
 /**
  * A transformer which combines the {@code replay(1)}, {@code publish()}, and {@code refCount()}
@@ -29,7 +29,7 @@ import rx.functions.Func0;
  * This allows expensive upstream observables to be shut down when no one is subscribed while also
  * replaying the last value seen by *any* subscriber to new ones.
  */
-public final class ReplayingShare<T> implements Transformer<T, T> {
+public final class ReplayingShare<T> implements ObservableTransformer<T, T> {
   private static final ReplayingShare<Object> INSTANCE = new ReplayingShare<>();
 
   /** The singleton instance of this transformer. */
@@ -41,12 +41,12 @@ public final class ReplayingShare<T> implements Transformer<T, T> {
   private ReplayingShare() {
   }
 
-  @Override public Observable<T> call(Observable<T> upstream) {
+  @Override public Observable<T> apply(Observable<T> upstream) {
     LastSeen<T> lastSeen = new LastSeen<>();
     return upstream.doOnNext(lastSeen).share().startWith(Observable.defer(lastSeen));
   }
 
-  private static final class LastSeen<T> implements Action1<T>, Func0<Observable<T>> {
+  private static final class LastSeen<T> implements Consumer<T>, Callable<Observable<T>> {
     private static final Object NONE = new Object();
 
     @SuppressWarnings("unchecked") // Safe because of erasure.
@@ -55,7 +55,7 @@ public final class ReplayingShare<T> implements Transformer<T, T> {
     LastSeen() {
     }
 
-    @Override public void call(T latest) {
+    @Override public void accept(T latest) {
       last = latest;
     }
 

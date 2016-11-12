@@ -15,7 +15,7 @@
  */
 package com.jakewharton.rx.transformer
 
-import rx.Observable
+import io.reactivex.Observable
 
 /**
  * A transformer which combines `replay(1)`, `publish()`, and `refCount()` operators.
