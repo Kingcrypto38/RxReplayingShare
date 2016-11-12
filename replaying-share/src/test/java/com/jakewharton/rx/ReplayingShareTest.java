@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jakewharton.rx.transformer;
+package com.jakewharton.rx;
 
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
