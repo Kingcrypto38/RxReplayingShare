@@ -1,18 +1,18 @@
 RxJava Replaying Share
 ======================
 
-`ReplayingShare` is an RxJava transformer which combines `replay(1)`, `publish()`, and `refCount()`
-operators.
+`ReplayingShare` is an RxJava 2 transformer which combines `replay(1)`, `publish()`, and
+`refCount()` operators.
 
 Unlike traditional combinations of these operators, `ReplayingShare` caches the last emitted
-value from the upstream observable *only* when one or more downstream subscribers are connected.
-This allows expensive upstream observables to be shut down when no one is subscribed while also
-replaying the last value seen by *any* subscriber to new ones.
+value from the upstream observable or flowable *only* when one or more downstream subscribers are
+connected. This allows expensive upstream sources to be shut down when no one is listening while
+also replaying the last value seen by *any* subscriber to new ones.
 
 ![marble diagram](marbles.png)
 
-Apply with `compose` to an upstream observable and cache the resulting observable for new
-subscribers.
+Apply with `compose` to an upstream `Observable` or `Flowable` and cache the resulting instance for
+all new subscribers.
 
 ```java
 @Singleton class Chart {
@@ -39,16 +39,16 @@ Maven:
 <dependency>
   <groupId>com.jakewharton.rx</groupId>
   <artifactId>replaying-share</artifactId>
-  <version>1.0.1</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 Gradle:
 ```groovy
-compile 'com.jakewharton.rx:replaying-share:1.0.1'
+compile 'com.jakewharton.rx:replaying-share:2.0.0'
 ```
 
-If you use Kotlin, a package with an extension method for `Observable` is provided. Replace the
-the `replaying-share` artifact ID above with `replaying-share-kotlin`.
+If you use Kotlin, a package with an extension method for both `Observable` and `Flowable` is
+provided. Replace the `replaying-share` artifact ID above with `replaying-share-kotlin`.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
