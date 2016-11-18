@@ -19,8 +19,11 @@ import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import java.util.concurrent.Callable;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 /**
  * A transformer which combines the {@code replay(1)}, {@code publish()}, and {@code refCount()}
@@ -45,42 +48,131 @@ public final class ReplayingShare<T>
   }
 
   @Override public Observable<T> apply(Observable<T> upstream) {
-    ObservableLastSeen<T> lastSeen = new ObservableLastSeen<>();
-    return upstream.doOnNext(lastSeen).share().startWith(Observable.defer(lastSeen));
+    LastSeen<T> lastSeen = new LastSeen<>();
+    return new LastSeenObservable<>(upstream.doOnNext(lastSeen).share(), lastSeen);
   }
 
   @Override public Flowable<T> apply(Flowable<T> upstream) {
-    FlowableLastSeen<T> lastSeen = new FlowableLastSeen<>();
-    return upstream.doOnNext(lastSeen).share().startWith(Flowable.defer(lastSeen));
+    LastSeen<T> lastSeen = new LastSeen<>();
+    return new LastSeenFlowable<>(upstream.doOnNext(lastSeen).share(), lastSeen);
   }
 
-  static final class ObservableLastSeen<T> implements Consumer<T>, Callable<Observable<T>> {
-    private volatile T last;
+  static final class LastSeen<T> implements Consumer<T> {
+    volatile T value;
 
     @Override public void accept(T latest) {
-      last = latest;
-    }
-
-    @Override public Observable<T> call() {
-      T value = last;
-      return value != null
-          ? Observable.just(value)
-          : Observable.<T>empty();
+      value = latest;
     }
   }
 
-  static final class FlowableLastSeen<T> implements Consumer<T>, Callable<Flowable<T>> {
-    private volatile T last;
+  static final class LastSeenObservable<T> extends Observable<T> {
+    private final Observable<T> upstream;
+    private final LastSeen<T> lastSeen;
 
-    @Override public void accept(T latest) {
-      last = latest;
+    LastSeenObservable(Observable<T> upstream, LastSeen<T> lastSeen) {
+      this.upstream = upstream;
+      this.lastSeen = lastSeen;
     }
 
-    @Override public Flowable<T> call() {
-      T value = last;
-      return value != null
-          ? Flowable.just(value)
-          : Flowable.<T>empty();
+    @Override protected void subscribeActual(Observer<? super T> observer) {
+      upstream.subscribe(new LastSeenObserver<T>(observer, lastSeen));
+    }
+  }
+
+  static final class LastSeenObserver<T> implements Observer<T> {
+    private final Observer<? super T> downstream;
+    private final LastSeen<T> lastSeen;
+
+    LastSeenObserver(Observer<? super T> downstream, LastSeen<T> lastSeen) {
+      this.downstream = downstream;
+      this.lastSeen = lastSeen;
+    }
+
+    @Override public void onSubscribe(Disposable d) {
+      downstream.onSubscribe(d);
+
+      T value = lastSeen.value;
+      if (value != null) {
+        downstream.onNext(value);
+      }
+    }
+
+    @Override public void onNext(T value) {
+      downstream.onNext(value);
+    }
+
+    @Override public void onComplete() {
+      downstream.onComplete();
+    }
+
+    @Override public void onError(Throwable e) {
+      downstream.onError(e);
+    }
+  }
+
+  static final class LastSeenFlowable<T> extends Flowable<T> {
+    private final Flowable<T> upstream;
+    private final LastSeen<T> lastSeen;
+
+    LastSeenFlowable(Flowable<T> upstream, LastSeen<T> lastSeen) {
+      this.upstream = upstream;
+      this.lastSeen = lastSeen;
+    }
+
+    @Override protected void subscribeActual(Subscriber<? super T> subscriber) {
+      upstream.subscribe(new LastSeenSubscriber<T>(subscriber, lastSeen));
+    }
+  }
+
+  static final class LastSeenSubscriber<T> implements Subscriber<T>, Subscription {
+    private final Subscriber<? super T> downstream;
+    private final LastSeen<T> lastSeen;
+
+    private Subscription subscription;
+    private boolean first = true;
+
+    LastSeenSubscriber(Subscriber<? super T> downstream, LastSeen<T> lastSeen) {
+      this.downstream = downstream;
+      this.lastSeen = lastSeen;
+    }
+
+    @Override public void onSubscribe(Subscription subscription) {
+      this.subscription = subscription;
+      downstream.onSubscribe(this);
+    }
+
+    @Override public void request(long amount) {
+      if (amount == 0) return;
+
+      if (first) {
+        first = false;
+
+        T value = lastSeen.value;
+        if (value != null) {
+          downstream.onNext(value);
+
+          if (amount != Long.MAX_VALUE && --amount == 0) {
+            return;
+          }
+        }
+      }
+      subscription.request(amount);
+    }
+
+    @Override public void cancel() {
+      subscription.cancel();
+    }
+
+    @Override public void onNext(T value) {
+      downstream.onNext(value);
+    }
+
+    @Override public void onComplete() {
+      downstream.onComplete();
+    }
+
+    @Override public void onError(Throwable t) {
+      downstream.onError(t);
     }
   }
 }

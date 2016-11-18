@@ -22,7 +22,6 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.subscribers.TestSubscriber;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
 
@@ -143,7 +142,6 @@ public final class ReplayingShareFlowableTest {
     assertEquals(0, count.get());
   }
 
-  @Ignore("Processor handles backpressure which screws up this behavior")
   @Test public void backpressureHonoredWhenCached() {
     PublishProcessor<String> subject = PublishProcessor.create();
     Flowable<String> flowable = subject.compose(ReplayingShare.<String>instance());
@@ -160,8 +158,6 @@ public final class ReplayingShareFlowableTest {
     subscriber2.assertNoValues();
 
     subject.onNext("Bar"); // Replace the cached value...
-    subscriber1.assertValues("Foo", "Bar");
-
     subscriber2.request(1); // ...and ensure new requests see it.
     subscriber2.assertValues("Bar");
   }
