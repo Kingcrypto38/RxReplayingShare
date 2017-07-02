@@ -87,6 +87,7 @@ public final class ReplayingShareObservableTest {
     observer2.assertNoValues();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test public void fatalExceptionDuringReplayThrown() {
     PublishSubject<String> subject = PublishSubject.create();
     Observable<String> observable = subject.compose(ReplayingShare.<String>instance());
