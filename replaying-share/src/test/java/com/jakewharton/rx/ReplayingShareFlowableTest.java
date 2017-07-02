@@ -87,6 +87,7 @@ public final class ReplayingShareFlowableTest {
     subscriber2.assertNoValues();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test public void fatalExceptionDuringReplayThrown() {
     PublishProcessor<String> subject = PublishProcessor.create();
     Flowable<String> flowable = subject.compose(ReplayingShare.<String>instance());
