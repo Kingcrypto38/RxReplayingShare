@@ -37,14 +37,14 @@ Download
 Maven:
 ```xml
 <dependency>
-  <groupId>com.jakewharton.rx</groupId>
+  <groupId>com.jakewharton.rx2</groupId>
   <artifactId>replaying-share</artifactId>
   <version>2.0.0</version>
 </dependency>
 ```
 Gradle:
 ```groovy
-compile 'com.jakewharton.rx:replaying-share:2.0.0'
+compile 'com.jakewharton.rx2:replaying-share:2.0.0'
 ```
 
 If you use Kotlin, a package with an extension method for both `Observable` and `Flowable` is
