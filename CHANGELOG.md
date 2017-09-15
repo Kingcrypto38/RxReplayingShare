@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 2.0.1 *(2017-09-14)*
+----------------------------
+
+ * Fix: Kotlin extension functions now return non-nullable types instead of platform types.
+
+
 Version 2.0.0 *(2017-07-02)*
 ----------------------------
 
