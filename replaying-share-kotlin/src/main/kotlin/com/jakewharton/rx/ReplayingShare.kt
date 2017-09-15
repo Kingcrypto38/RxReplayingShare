@@ -26,7 +26,7 @@ import io.reactivex.Observable
  * This allows expensive upstream observables to be shut down when no one is observing while also
  * replaying the last value seen by *any* observer to new ones.
  */
-fun <T> Observable<T>.replayingShare() = compose(ReplayingShare.instance<T>())
+fun <T> Observable<T>.replayingShare(): Observable<T> = compose(ReplayingShare.instance<T>())
 
 /**
  * A transformer which combines `replay(1)`, `publish()`, and `refCount()` operators.
@@ -36,4 +36,4 @@ fun <T> Observable<T>.replayingShare() = compose(ReplayingShare.instance<T>())
  * This allows expensive upstream flowables to be shut down when no one is subscribed while also
  * replaying the last value seen by *any* subscriber to new ones.
  */
-fun <T> Flowable<T>.replayingShare() = compose(ReplayingShare.instance<T>())
+fun <T> Flowable<T>.replayingShare(): Flowable<T> = compose(ReplayingShare.instance<T>())
