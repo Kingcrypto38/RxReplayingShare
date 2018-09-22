@@ -21,7 +21,6 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -86,7 +85,7 @@ public final class ReplayingShare<T>
     }
 
     @Override protected void subscribeActual(Observer<? super T> observer) {
-      upstream.subscribe(new LastSeenObserver<T>(observer, lastSeen));
+      upstream.subscribe(new LastSeenObserver<>(observer, lastSeen));
     }
   }
 
@@ -131,7 +130,7 @@ public final class ReplayingShare<T>
     }
 
     @Override protected void subscribeActual(Subscriber<? super T> subscriber) {
-      upstream.subscribe(new LastSeenSubscriber<T>(subscriber, lastSeen));
+      upstream.subscribe(new LastSeenSubscriber<>(subscriber, lastSeen));
     }
   }
 
