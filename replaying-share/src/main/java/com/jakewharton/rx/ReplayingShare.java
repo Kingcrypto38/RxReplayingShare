@@ -49,20 +49,31 @@ public final class ReplayingShare<T>
 
   @Override public Observable<T> apply(Observable<T> upstream) {
     LastSeen<T> lastSeen = new LastSeen<>();
-    return new LastSeenObservable<>(upstream.doOnNext(lastSeen).share(), lastSeen);
+    return new LastSeenObservable<>(upstream.doOnEach(lastSeen).share(), lastSeen);
   }
 
   @Override public Flowable<T> apply(Flowable<T> upstream) {
     LastSeen<T> lastSeen = new LastSeen<>();
-    return new LastSeenFlowable<>(upstream.doOnNext(lastSeen).share(), lastSeen);
+    return new LastSeenFlowable<>(upstream.doOnEach(lastSeen).share(), lastSeen);
   }
 
-  static final class LastSeen<T> implements Consumer<T> {
+  static final class LastSeen<T> implements Observer<T>, Subscriber<T> {
     volatile T value;
 
-    @Override public void accept(T latest) {
-      value = latest;
+    @Override public void onNext(T value) {
+        this.value = value;
     }
+
+    @Override public void onError(Throwable e) {
+      value = null;
+    }
+
+    @Override public void onComplete() {
+      value = null;
+    }
+
+    @Override public void onSubscribe(Subscription ignored) {}
+    @Override public void onSubscribe(Disposable ignored) {}
   }
 
   static final class LastSeenObservable<T> extends Observable<T> {
