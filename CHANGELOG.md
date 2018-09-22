@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 2.1.0 *(2018-09-22)*
+----------------------------
+
+ * Fix: Clear cached value when upstream emits a terminal event.
+
+
 Version 2.0.1 *(2017-09-14)*
 ----------------------------
 

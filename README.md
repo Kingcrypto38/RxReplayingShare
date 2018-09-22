@@ -30,6 +30,9 @@ all new subscribers.
 }
 ```
 
+Note: This operator is designed for composition with infinite or extremely long-lived streams. Any
+terminal event will clear the cached value.
+
 
 Download
 --------
@@ -39,12 +42,12 @@ Maven:
 <dependency>
   <groupId>com.jakewharton.rx2</groupId>
   <artifactId>replaying-share</artifactId>
-  <version>2.0.1</version>
+  <version>2.1.0</version>
 </dependency>
 ```
 Gradle:
 ```groovy
-compile 'com.jakewharton.rx2:replaying-share:2.0.1'
+compile 'com.jakewharton.rx2:replaying-share:2.1.0'
 ```
 
 If you use Kotlin, a package with an extension method for both `Observable` and `Flowable` is
