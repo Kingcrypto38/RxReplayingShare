@@ -21,6 +21,8 @@ import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subjects.PublishSubject;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -189,5 +191,58 @@ public final class ReplayingShareObservableTest {
     TestObserver<String> observerB2 = new TestObserver<>();
     observableB.subscribe(observerB2);
     observerB2.assertValues("Bar");
+  }
+
+  @Test public void completeClearsCacheAndResubscribes() {
+    List<String> start = new ArrayList<>();
+    start.add("initA");
+
+    PublishSubject<String> upstream = PublishSubject.create();
+    Observable<String> replayed = upstream.startWith(start).compose(ReplayingShare.<String>instance());
+
+    TestObserver<String> observer1 = new TestObserver<>();
+    replayed.subscribe(observer1);
+    observer1.assertValues("initA");
+
+    TestObserver<String> observer2 = new TestObserver<>();
+    replayed.subscribe(observer2);
+    observer1.assertValues("initA");
+
+    upstream.onComplete();
+    observer1.assertComplete();
+    observer2.assertComplete();
+
+    start.set(0, "initB");
+
+    TestObserver<String> observer3 = new TestObserver<>();
+    replayed.subscribe(observer3);
+    observer3.assertValues("initB");
+  }
+
+  @Test public void errorClearsCacheAndResubscribes() {
+    List<String> start = new ArrayList<>();
+    start.add("initA");
+
+    PublishSubject<String> upstream = PublishSubject.create();
+    Observable<String> replayed = upstream.startWith(start).compose(ReplayingShare.<String>instance());
+
+    TestObserver<String> observer1 = new TestObserver<>();
+    replayed.subscribe(observer1);
+    observer1.assertValues("initA");
+
+    TestObserver<String> observer2 = new TestObserver<>();
+    replayed.subscribe(observer2);
+    observer1.assertValues("initA");
+
+    RuntimeException r = new RuntimeException();
+    upstream.onError(r);
+    observer1.assertError(r);
+    observer2.assertError(r);
+
+    start.set(0, "initB");
+
+    TestObserver<String> observer3 = new TestObserver<>();
+    replayed.subscribe(observer3);
+    observer3.assertValues("initB");
   }
 }

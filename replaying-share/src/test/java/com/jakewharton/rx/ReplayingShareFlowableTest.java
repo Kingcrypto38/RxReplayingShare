@@ -21,6 +21,8 @@ import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.processors.PublishProcessor;
 import io.reactivex.subscribers.TestSubscriber;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 import org.reactivestreams.Subscription;
@@ -186,5 +188,58 @@ public final class ReplayingShareFlowableTest {
     TestSubscriber<String> subscriberB2 = new TestSubscriber<>();
     flowableB.subscribe(subscriberB2);
     subscriberB2.assertValues("Bar");
+  }
+
+  @Test public void completeClearsCacheAndResubscribes() {
+    List<String> start = new ArrayList<>();
+    start.add("initA");
+
+    PublishProcessor<String> upstream = PublishProcessor.create();
+    Flowable<String> replayed = upstream.startWith(start).compose(ReplayingShare.<String>instance());
+
+    TestSubscriber<String> observer1 = new TestSubscriber<>();
+    replayed.subscribe(observer1);
+    observer1.assertValues("initA");
+
+    TestSubscriber<String> observer2 = new TestSubscriber<>();
+    replayed.subscribe(observer2);
+    observer1.assertValues("initA");
+
+    upstream.onComplete();
+    observer1.assertComplete();
+    observer2.assertComplete();
+
+    start.set(0, "initB");
+
+    TestSubscriber<String> observer3 = new TestSubscriber<>();
+    replayed.subscribe(observer3);
+    observer3.assertValues("initB");
+  }
+
+  @Test public void errorClearsCacheAndResubscribes() {
+    List<String> start = new ArrayList<>();
+    start.add("initA");
+
+    PublishProcessor<String> upstream = PublishProcessor.create();
+    Flowable<String> replayed = upstream.startWith(start).compose(ReplayingShare.<String>instance());
+
+    TestSubscriber<String> observer1 = new TestSubscriber<>();
+    replayed.subscribe(observer1);
+    observer1.assertValues("initA");
+
+    TestSubscriber<String> observer2 = new TestSubscriber<>();
+    replayed.subscribe(observer2);
+    observer1.assertValues("initA");
+
+    RuntimeException r = new RuntimeException();
+    upstream.onError(r);
+    observer1.assertError(r);
+    observer2.assertError(r);
+
+    start.set(0, "initB");
+
+    TestSubscriber<String> observer3 = new TestSubscriber<>();
+    replayed.subscribe(observer3);
+    observer3.assertValues("initB");
   }
 }
