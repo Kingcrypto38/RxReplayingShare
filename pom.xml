@@ -11,7 +11,7 @@
 
   <groupId>com.jakewharton.rx2</groupId>
   <artifactId>replaying-share-parent</artifactId>
-  <version>2.1.1</version>
+  <version>2.1.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>RxJava Replaying Share (Parent)</name>
@@ -27,7 +27,7 @@
     <url>http://github.com/JakeWharton/RxReplayingShare</url>
     <connection>scm:git:git://github.com/JakeWharton/RxReplayingShare.git</connection>
     <developerConnection>scm:git:git@github.com:JakeWharton/RxReplayingShare.git</developerConnection>
-    <tag>replaying-share-parent-2.1.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
