@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+Version 2.1.1 *(2019-02-19)*
+----------------------------
+
+ * Fix: Do not emit cached value if the subscriber immediately disposes/cancel subscription.
+
+
 Version 2.1.0 *(2018-09-22)*
 ----------------------------
 
