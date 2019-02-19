@@ -16,6 +16,7 @@
 package com.jakewharton.rx;
 
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
@@ -244,5 +245,17 @@ public final class ReplayingShareObservableTest {
     TestObserver<String> observer3 = new TestObserver<>();
     replayed.subscribe(observer3);
     observer3.assertValues("initB");
+  }
+
+  @Test public void unsubscribeBeforeSubscribePreventsCacheEmission() {
+    PublishSubject<String> upstream = PublishSubject.create();
+    Observable<String> replayed = upstream.compose(ReplayingShare.<String>instance());
+    replayed.subscribe();
+    upstream.onNext("something to cache");
+
+    TestObserver<String> testObserver = new TestObserver<>();
+    testObserver.dispose();
+    replayed.subscribe(testObserver);
+    testObserver.assertNoValues();
   }
 }
