@@ -29,6 +29,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public final class ReplayingShareFlowableTest {
   @Test public void noInitialValue() {
@@ -105,6 +106,7 @@ public final class ReplayingShareFlowableTest {
     };
     try {
       flowable.subscribe(brokenAction);
+      fail();
     } catch (OutOfMemoryError e) {
       assertEquals("broken!", e.getMessage());
     }

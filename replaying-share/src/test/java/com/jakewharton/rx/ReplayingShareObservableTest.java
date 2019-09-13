@@ -28,6 +28,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public final class ReplayingShareObservableTest {
   @Test public void noInitialValue() {
@@ -104,6 +105,7 @@ public final class ReplayingShareObservableTest {
     };
     try {
       observable.subscribe(brokenAction);
+      fail();
     } catch (OutOfMemoryError e) {
       assertEquals("broken!", e.getMessage());
     }
