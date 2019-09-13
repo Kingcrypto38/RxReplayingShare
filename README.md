@@ -42,12 +42,12 @@ Maven:
 <dependency>
   <groupId>com.jakewharton.rx2</groupId>
   <artifactId>replaying-share</artifactId>
-  <version>2.1.1</version>
+  <version>2.2.0</version>
 </dependency>
 ```
 Gradle:
 ```groovy
-compile 'com.jakewharton.rx2:replaying-share:2.1.1'
+compile 'com.jakewharton.rx2:replaying-share:2.2.0'
 ```
 
 If you use Kotlin, a package with an extension method for both `Observable` and `Flowable` is
