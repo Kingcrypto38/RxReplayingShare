@@ -80,8 +80,18 @@
           <source>${java.version}</source>
           <target>${java.version}</target>
           <showWarnings>true</showWarnings>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>com.uber.nullaway</groupId>
+              <artifactId>nullaway</artifactId>
+              <version>0.7.6</version>
+            </path>
+          </annotationProcessorPaths>
           <compilerArgs>
             <arg>-Xep:MissingFail:ERROR</arg>
+            <arg>-Xep:NullAway:ERROR</arg>
+            <arg>-XepOpt:NullAway:AssertsEnabled=true</arg>
+            <arg>-XepOpt:NullAway:AnnotatedPackages=com.jakewharton.rx</arg>
           </compilerArgs>
         </configuration>
         <dependencies>

@@ -20,6 +20,8 @@ import io.reactivex.FlowableTransformer;
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.Observer;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.annotations.Nullable;
 import io.reactivex.disposables.Disposable;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -38,6 +40,7 @@ public final class ReplayingShare<T>
   private static final ReplayingShare<Object> INSTANCE = new ReplayingShare<>(null);
 
   /** The singleton instance of this transformer. */
+  @NonNull
   @SuppressWarnings("unchecked") // Safe because of erasure.
   public static <T> ReplayingShare<T> instance() {
     return (ReplayingShare<T>) INSTANCE;
@@ -46,21 +49,18 @@ public final class ReplayingShare<T>
   /**
    * Creates a `ReplayingShare` transformer with a default value which will be emitted downstream
    * on subscription if there is not any cached value yet.
+   *
    * @param defaultValue the initial value, cannot be null
-   * @throws NullPointerException if {@code defaultValue} is null
    */
-  public static <T> ReplayingShare<T> createWithDefault(T defaultValue) {
+  @NonNull
+  public static <T> ReplayingShare<T> createWithDefault(@NonNull T defaultValue) {
     if (defaultValue == null) throw new NullPointerException("defaultValue == null");
     return new ReplayingShare<>(defaultValue);
   }
 
-  private final T defaultValue;
+  private final @Nullable T defaultValue;
 
-  /**
-   * Constructs a ReplayingShare with the given initial value.
-   * @param defaultValue the initial value
-   */
-  private ReplayingShare(T defaultValue) {
+  private ReplayingShare(@Nullable T defaultValue) {
     this.defaultValue = defaultValue;
   }
 
@@ -75,10 +75,10 @@ public final class ReplayingShare<T>
   }
 
   static final class LastSeen<T> implements Observer<T>, Subscriber<T> {
-    private final T defaultValue;
-    volatile T value;
+    private final @Nullable T defaultValue;
+    volatile @Nullable T value;
 
-    LastSeen(T defaultValue) {
+    LastSeen(@Nullable T defaultValue) {
       this.defaultValue = defaultValue;
       value = defaultValue;
     }
@@ -162,7 +162,7 @@ public final class ReplayingShare<T>
     private final Subscriber<? super T> downstream;
     private final LastSeen<T> lastSeen;
 
-    private Subscription subscription;
+    private @Nullable Subscription subscription;
     private volatile boolean cancelled;
     private boolean first = true;
 
@@ -191,10 +191,14 @@ public final class ReplayingShare<T>
           }
         }
       }
+      Subscription subscription = this.subscription;
+      assert subscription != null;
       subscription.request(amount);
     }
 
     @Override public void cancel() {
+      Subscription subscription = this.subscription;
+      assert subscription != null;
       cancelled = true;
       subscription.cancel();
     }
