@@ -50,7 +50,8 @@ public final class ReplayingShare<T>
    * Creates a `ReplayingShare` transformer with a default value which will be emitted downstream
    * on subscription if there is not any cached value yet.
    *
-   * @param defaultValue the initial value, cannot be null
+   * @param defaultValue the initial value delivered to new subscribers before any events are
+   * cached.
    */
   @NonNull
   public static <T> ReplayingShare<T> createWithDefault(@NonNull T defaultValue) {

@@ -26,7 +26,8 @@ import io.reactivex.Observable
  * This allows expensive upstream observables to be shut down when no one is observing while also
  * replaying the last value seen by *any* observer to new ones.
  *
- * @param defaultValue the initial value to be cached
+ * @param defaultValue the initial value delivered to new subscribers before any events are cached.
+ * A null value means there will be no initial emission.
  */
 @JvmOverloads
 fun <T> Observable<T>.replayingShare(defaultValue: T? = null): Observable<T> {
@@ -44,7 +45,8 @@ fun <T> Observable<T>.replayingShare(defaultValue: T? = null): Observable<T> {
  * This allows expensive upstream flowables to be shut down when no one is subscribed while also
  * replaying the last value seen by *any* subscriber to new ones.
  *
- * @param defaultValue the initial value to be cached
+ * @param defaultValue the initial value delivered to new subscribers before any events are cached.
+ * A null value means there will be no initial emission.
  */
 @JvmOverloads
 fun <T> Flowable<T>.replayingShare(defaultValue: T? = null): Flowable<T> {
