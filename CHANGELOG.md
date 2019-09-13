@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 2.2.0 *(2019-09-13)
----------------------------
+Version 2.2.0 *(2019-09-13)*
+----------------------------
 
  * New: `createWithDefault` factory for supplying a default cached value. Currently, the first
    subscriber has to wait for the upstream source to emit. By specifying a default value you can
