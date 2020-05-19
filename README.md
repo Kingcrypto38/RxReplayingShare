@@ -11,6 +11,10 @@ also replaying the last value seen by *any* subscriber to new ones.
 
 ![marble diagram](marbles.png)
 
+
+Usage
+-----
+
 Apply with `compose` to an upstream `Observable` or `Flowable` and cache the resulting instance for
 all new subscribers.
 
@@ -30,6 +34,17 @@ all new subscribers.
 }
 ```
 
+Kotlin users can use the operator via an extension function.
+
+```kotlin
+@Singleton class Chart
+@Inject constructor(data: Observable<List<Data>>) {
+  val chart: Observable<Bitmap> = data.debounce(1, SECONDS)
+      .map(list -> bigExpensiveRenderChartToBitmapFunction(list))
+      .replayingShare()
+}
+```
+
 Note: This operator is designed for composition with infinite or extremely long-lived streams. Any
 terminal event will clear the cached value.
 
@@ -37,6 +52,12 @@ terminal event will clear the cached value.
 Download
 --------
 
+Gradle:
+```groovy
+implementation 'com.jakewharton.rx3:replaying-share:3.0.0'
+// Optional:
+implementation 'com.jakewharton.rx3:replaying-share-kotlin:3.0.0'
+```
 Maven:
 ```xml
 <dependency>
@@ -44,14 +65,13 @@ Maven:
   <artifactId>replaying-share</artifactId>
   <version>3.0.0</version>
 </dependency>
+<!-- Optional: -->
+<dependency>
+  <groupId>com.jakewharton.rx3</groupId>
+  <artifactId>replaying-share-kotlin</artifactId>
+  <version>3.0.0</version>
+</dependency>
 ```
-Gradle:
-```groovy
-compile 'com.jakewharton.rx3:replaying-share:3.0.0'
-```
-
-If you use Kotlin, a package with an extension method for both `Observable` and `Flowable` is
-provided. Replace the `replaying-share` artifact ID above with `replaying-share-kotlin`.
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
