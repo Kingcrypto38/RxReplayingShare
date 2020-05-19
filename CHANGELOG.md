@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+Version 3.0.0 *(2020-05-19)*
+----------------------------
+
+This version updates to support RxJava 3. No functional changes.
+
+The groupId and package name are now `com.jakewharton.rx3`.
+
+
 Version 2.2.0 *(2019-09-13)*
 ----------------------------
 
