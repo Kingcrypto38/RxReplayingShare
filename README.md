@@ -84,6 +84,52 @@ Maven:
 
 Snapshots of the development version are available in [Sonatype's `snapshots` repository][snap].
 
+### RxJava 2.x
+
+Gradle:
+```groovy
+implementation 'com.jakewharton.rx2:replaying-share:2.2.0'
+// Optional:
+implementation 'com.jakewharton.rx2:replaying-share-kotlin:2.2.0'
+```
+Maven:
+```xml
+<dependency>
+  <groupId>com.jakewharton.rx2</groupId>
+  <artifactId>replaying-share</artifactId>
+  <version>2.2.0</version>
+</dependency>
+<!-- Optional: -->
+<dependency>
+  <groupId>com.jakewharton.rx2</groupId>
+  <artifactId>replaying-share-kotlin</artifactId>
+  <version>2.2.0</version>
+</dependency>
+```
+
+### RxJava 1.x
+
+Gradle:
+```groovy
+implementation 'com.jakewharton.rx:replaying-share:1.0.1'
+// Optional:
+implementation 'com.jakewharton.rx:replaying-share-kotlin:1.0.1'
+```
+Maven:
+```xml
+<dependency>
+  <groupId>com.jakewharton.rx</groupId>
+  <artifactId>replaying-share</artifactId>
+  <version>1.0.1</version>
+</dependency>
+<!-- Optional: -->
+<dependency>
+  <groupId>com.jakewharton.rx</groupId>
+  <artifactId>replaying-share-kotlin</artifactId>
+  <version>1.0.1</version>
+</dependency>
+```
+
 
 License
 -------
